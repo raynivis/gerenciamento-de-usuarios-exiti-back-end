@@ -21,7 +21,7 @@ public class UsuarioService {
     }
 
     public Page<Usuario> listAll(int page, int size, String status, String search) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("nome").ascending());
         return usuarioRepository.findAllWithFilters(status, search, pageable);
     }
 
