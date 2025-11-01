@@ -7,8 +7,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UsuarioService {
@@ -72,5 +73,43 @@ public class UsuarioService {
         }
         
         return usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public List<Usuario> importUsuarios(List<Usuario> usuarios) {
+        if (usuarios == null || usuarios.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Set<String> emailsSet = new HashSet<>();
+        List<String> emailsDuplicates = new ArrayList<>();
+        
+        for (Usuario u : usuarios) {
+            String email = u.getEmail();
+            if (email != null && !email.trim().isEmpty()) {
+                if (!emailsSet.add(email)) {
+                    emailsDuplicates.add(email);
+                }
+            }
+        }
+        
+        if (!emailsDuplicates.isEmpty()) {
+            throw new IllegalArgumentException("Emails repetidos na lista de importação: " + emailsDuplicates);
+        }
+
+        List<String> emailsList = new ArrayList<>(emailsSet);
+        
+        if (!emailsList.isEmpty()) {
+            List<Usuario> existingUsuarios = usuarioRepository.findByEmailIn(emailsList);
+            if (!existingUsuarios.isEmpty()) {
+                List<String> emailsFound = new ArrayList<>();
+                for (Usuario u : existingUsuarios) {
+                    emailsFound.add(u.getEmail());
+                }
+                throw new IllegalArgumentException("Emails já cadastrados no sistema: " + emailsFound);
+            }
+        }
+
+        return usuarioRepository.saveAll(usuarios);
     }
 }

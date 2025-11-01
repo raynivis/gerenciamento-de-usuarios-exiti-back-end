@@ -48,6 +48,16 @@ public class UsuarioController {
         }
     }
 
+    @PostMapping("/importacao")
+    public ResponseEntity<?> importUsuarios(@RequestBody List<Usuario> usuarios) {
+        try {
+            List<Usuario> usuariosList = usuarioService.importUsuarios(usuarios);
+            return ResponseEntity.status(HttpStatus.CREATED).body(usuariosList);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+        }
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Usuario usuario) {
         try {
